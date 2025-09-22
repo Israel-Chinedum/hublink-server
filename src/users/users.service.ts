@@ -1,4 +1,4 @@
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { loginDTO, userDTO } from './users.dto';
 import { msg } from 'src/utils/message.util';
 import { InjectModel } from '@nestjs/mongoose';
@@ -91,8 +91,9 @@ export class UsersService {
   }
 
   // =====EDIT USER=====
-  async editUser(user: object) {
+  async editUser(user: User | undefined) {
     msg.stamp(this.filename, 'A request to edit user details was just made!');
-    return msg.reply(user, 200);
+
+    return user ? msg.reply(user, 200) : msg.reply('user is not defined!', 400);
   }
 }

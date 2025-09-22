@@ -13,7 +13,7 @@ import { Model } from 'mongoose';
 
 const jwtAccess = new JwtService({
   secret: process.env.ACCESS_TOKEN,
-  signOptions: { expiresIn: '30m' },
+  signOptions: { expiresIn: '5s' },
 });
 
 const jwtRefresh = new JwtService({
@@ -67,7 +67,6 @@ export class AuthService implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    console.log(req.cookies);
     const accessToken = req.cookies?.accessToken;
 
     if (!accessToken) throw new UnauthorizedException('Unauthorized access!');

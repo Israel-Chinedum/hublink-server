@@ -60,7 +60,7 @@ export class UsersController {
 
   @UseGuards(AuthService)
   @Patch()
-  async editUser(@Req() req: any, @Res() res: Response) {
+  async editUser(@Req() req: Request, @Res() res: Response) {
     const { message, resCode } = await this.userService.editUser(req.user);
     res.status(resCode).json(message);
   }

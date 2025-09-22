@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { userDTO } from './users.dto';
+import { ExecutionContext, Injectable } from '@nestjs/common';
+import { loginDTO, userDTO } from './users.dto';
 import { msg } from 'src/utils/message.util';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './users.schema';
+import { User } from '../schemas/users.schema';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
@@ -65,5 +65,34 @@ export class UsersService {
       msg.stamp(this.filename, 'an error occured while trying to create user!');
       return msg.reply('Unable to register user, please try again later!', 500);
     }
+  }
+
+  // =====LOGIN METHOD=====
+  async login(body: loginDTO) {
+    msg.stamp(this.filename, 'A login request has just been made!');
+    try {
+      const users = await this.userModel.find().exec();
+      let valid_user = {};
+      for (let user of users) {
+        const match = await bcrypt.compare(body.password, user.password);
+        if (match && body.email === user.email) valid_user = user;
+      }
+      if (!Object.keys(valid_user).length)
+        return msg.reply('Invalid email or password!', 400);
+      return msg.reply(valid_user, 200);
+    } catch (error) {
+      console.log('Error: ', error);
+      msg.stamp(this.filename, 'An error occured while trying to verify user!');
+      return msg.reply(
+        'Unable to process login details, please try again later!',
+        500,
+      );
+    }
+  }
+
+  // =====EDIT USER=====
+  async editUser(user: object) {
+    msg.stamp(this.filename, 'A request to edit user details was just made!');
+    return msg.reply(user, 200);
   }
 }

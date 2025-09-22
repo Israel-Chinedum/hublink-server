@@ -1,5 +1,5 @@
 class Message {
-  reply(message: string, resCode: number) {
+  reply(message: string | object, resCode: number) {
     return { message, resCode };
   }
 

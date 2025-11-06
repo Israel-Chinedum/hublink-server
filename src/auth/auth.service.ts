@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
@@ -13,7 +14,7 @@ import { Model } from 'mongoose';
 
 const jwtAccess = new JwtService({
   secret: process.env.ACCESS_TOKEN,
-  signOptions: { expiresIn: '5s' },
+  signOptions: { expiresIn: '30m' },
 });
 
 const jwtRefresh = new JwtService({
@@ -55,13 +56,13 @@ export class AuthService implements CanActivate {
     }
   }
 
-  async verify(refreshToken: string, user: object) {
+  async verify(refreshToken: string) {
     if (!refreshToken) return msg.reply('Unauthorized access!', 401);
     try {
-      await jwtRefresh.verifyAsync(refreshToken);
+      const { user } = await jwtRefresh.verifyAsync(refreshToken);
       return msg.reply(await this.generateToken('access_token', user), 201);
     } catch {
-      return msg.reply('Invalid token!', 403);
+      return msg.reply('Token not found!', 403);
     }
   }
 
@@ -69,10 +70,11 @@ export class AuthService implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const accessToken = req.cookies?.accessToken;
 
-    if (!accessToken) throw new UnauthorizedException('Unauthorized access!');
+    if (!accessToken) throw new ForbiddenException('Token not found!');
 
     try {
-      req.user = await jwtAccess.verifyAsync(accessToken);
+      const { user } = await jwtAccess.verifyAsync(accessToken);
+      req.user = user;
       return true;
     } catch {
       throw new UnauthorizedException('Invalid access token!');

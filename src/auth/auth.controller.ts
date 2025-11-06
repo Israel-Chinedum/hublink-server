@@ -8,24 +8,28 @@ export class AuthController {
 
   @Get()
   async verify(@Req() req: Request, @Res() res: Response) {
-    if (req.user) {
-      const { message, resCode } = await this.auth.verify(
-        req.cookies.refreshToken,
-        req.user,
-      );
+    const { message, resCode } = await this.auth.verify(
+      req.cookies.refreshToken,
+    );
 
-      if (resCode === 200) {
-        const accessToken = await this.auth.generateToken(
-          'access_token',
-          req.user,
-        );
-        res.cookie('accessToken', accessToken, {
-          httpOnly: true,
-          sameSite: 'strict',
-          secure: false,
-          maxAge: 1000 * 60 * 30,
-        });
-      }
+    if (resCode === 201) {
+      res.cookie('accessToken', message, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: false,
+        maxAge: 1000 * 60 * 30,
+      });
+      console.log('User: ', req.user);
+      return res.status(resCode).json(req.user);
+    } else {
+      return res.status(resCode).json(message);
     }
+  }
+
+  @Get('/logo')
+  async getLogos(@Res() res: Response, @Req() req: Request) {
+    console.log('A request was just made to logo');
+    console.log(req.user);
+    return res.status(302).redirect('https://logo.clearbit.com/opayweb.com');
   }
 }

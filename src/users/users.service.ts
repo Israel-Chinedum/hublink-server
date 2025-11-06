@@ -3,7 +3,7 @@ import { loginDTO, userDTO } from './users.dto';
 import { msg } from 'src/utils/message.util';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from '../schemas/users.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -91,9 +91,29 @@ export class UsersService {
   }
 
   // =====EDIT USER=====
-  async editUser(user: User | undefined) {
-    msg.stamp(this.filename, 'A request to edit user details was just made!');
+  async editUserProfile(newUserDetails: userDTO, user: User) {
+    msg.stamp(this.filename, 'A request to edit user profile was just made!');
+    try {
+      const existingUser = await this.userModel.findOne({
+        email: newUserDetails.email,
+      });
 
-    return user ? msg.reply(user, 200) : msg.reply('user is not defined!', 400);
+      if (existingUser && existingUser.email != user.email)
+        return msg.reply('email already exists!', 400);
+
+      msg.stamp(this.filename, JSON.stringify(newUserDetails));
+      const hashPassword = await this.hashPassword(newUserDetails.password, 10);
+      hashPassword && (newUserDetails.password = hashPassword);
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $set: newUserDetails },
+        { new: true },
+      );
+      if (updatedUser) return msg.reply(updatedUser, 200);
+      throw new Error();
+    } catch (error) {
+      console.log('Error: ', error);
+      return msg.reply('Unable to update user profile!', 500);
+    }
   }
 }

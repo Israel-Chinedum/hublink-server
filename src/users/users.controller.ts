@@ -59,9 +59,17 @@ export class UsersController {
   }
 
   @UseGuards(AuthService)
-  @Patch()
-  async editUser(@Req() req: Request, @Res() res: Response) {
-    const { message, resCode } = await this.userService.editUser(req.user);
+  @Patch('/edit-user-profile')
+  async editUserProfile(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body() body: userDTO,
+  ) {
+    if (!req.user) return res.status(404).json('User not found!');
+    const { message, resCode } = await this.userService.editUserProfile(
+      body,
+      req.user,
+    );
     res.status(resCode).json(message);
   }
 }

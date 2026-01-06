@@ -38,20 +38,15 @@ export class UsersService {
       const email = await this.userModel.findOne({ email: body.email }).exec();
       if (email) {
         msg.stamp(this.filename, 'email error: request declined ❌');
-        return msg.reply('user already exists!', 400);
-      }
-      // phone number verification
-      const phone = await this.userModel
-        .findOne({ phoneNumber: body.phoneNumber })
-        .exec();
-      if (phone) {
-        msg.stamp(this.filename, 'phoneNumber error: request declined ❌');
-        return msg.reply('Mobile number already exists!', 400);
+        return msg.reply('This email has already been registered!', 400);
       }
 
       // HASH USER PASSWORD
       const hashpassword = await this.hashPassword(body.password, 10);
       hashpassword && (body.password = hashpassword);
+
+      // ADD DATE PROPERTY TO USER OBJECT
+      body['createdAt'] = Date.now();
 
       // STORE USER DETAILS
       const user = new this.userModel(body);
@@ -79,7 +74,7 @@ export class UsersService {
       }
       if (!Object.keys(valid_user).length)
         return msg.reply('Invalid email or password!', 400);
-      return msg.reply(valid_user, 200);
+      return msg.reply('Login successful!', 200);
     } catch (error) {
       console.log('Error: ', error);
       msg.stamp(this.filename, 'An error occured while trying to verify user!');

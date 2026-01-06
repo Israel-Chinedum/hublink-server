@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Patch,
@@ -19,11 +20,14 @@ export class UsersController {
     private readonly auth: AuthService,
   ) {}
 
+  // ------ REGISTER USER ------
   @Post()
   async register(@Body() body: userDTO, @Res() res: Response) {
     const { message, resCode } = await this.userService.register(body);
     return res.status(resCode).json(message);
   }
+
+  // ------ USER LOGIN ------
 
   @Post('/login')
   async login(@Body() body: loginDTO, @Res() res: Response) {
@@ -37,6 +41,7 @@ export class UsersController {
           user,
         );
 
+        // ------ SEND USER ACCESS TOKEN ------
         res.cookie('accessToken', accessToken, {
           httpOnly: true,
           secure: false,
@@ -44,6 +49,7 @@ export class UsersController {
           maxAge: 30 * 60 * 1000,
         });
 
+        // ------ SEND USER REFRESH TOKEN ------;
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: false,
@@ -58,6 +64,7 @@ export class UsersController {
     }
   }
 
+  //
   @UseGuards(AuthService)
   @Patch('/edit-user-profile')
   async editUserProfile(
